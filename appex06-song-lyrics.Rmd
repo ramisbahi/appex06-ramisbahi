@@ -1,7 +1,7 @@
 ---
 title: "Visualizing song lyrics"
-author: ""
-date: ""
+author: "Rami Sbahi"
+date: "February 13, 2020"
 output: 
   html_document:
     toc: true
@@ -45,9 +45,58 @@ Choose two albums of your choice, and read in their song lyric data from Genius.
 Add a variable for the artist and album, and don't forget to save these data 
 frames for later use. 
 
-```{r part-1-reading-data}
+```{r test-stuff}
+text <- c("On your mark ready set let's go", 
+          "dance floor pro",
+          "I know you know I go psycho", 
+          "When my new joint hit", 
+          "just can't sit",
+          "Got to get jiggy wit it", 
+          "ooh, that's it")
+text
 
+text_df <- tibble(line = 1:7, text = text)
+text_df
+
+text_df %>%
+  unnest_tokens(word, text)
 ```
+
+```{r part-1-reading-data}
+lovell <- genius_album(
+  artist = "NAV", 
+  album = "Bad Habits"
+  )
+
+lovell <- lovell %>% 
+  mutate(
+  artist = "NAV", 
+  album = "Perfect Timing"
+)
+
+lovell %>% 
+  slice(1:4)
+```
+
+``` {r read-data-soad}
+soad <- genius_album(
+  artist = "Juice WRLD",
+  album = "Death Race For Love"
+)
+
+soad <- soad %>% 
+  mutate(
+  artist = "Juice WRLD",
+  album = "Death Race For Love"
+)
+
+soad %>% 
+  slice(1:15)
+
+soad %>%
+  distinct(track_title)
+```
+
 
 
 ## Part 2
@@ -57,8 +106,48 @@ commonly used words (after cleaning up the stop words). Are these words what
 you expect from the albums? Create a visualization of these words for each 
 album.
 
-```{r part-2-cleanup-dataviz}
+```{r part2-stuff}
+lovell_lyrics <- lovell %>%
+  unnest_tokens(word, lyric)
 
+lovell_lyrics %>% 
+  slice(1:5)
+
+soad_lyrics <- soad %>%
+  unnest_tokens(word, lyric)
+
+soad_lyrics %>% slice(1:5)
+```
+
+```{r part2-vis-lovell}
+top_20_lovell <- lovell_lyrics %>%
+  anti_join(get_stopwords(source = "smart")) %>%
+  count(word) %>%
+  arrange(desc(n)) %>%
+  slice(1:20)
+
+top_20_lovell %>% 
+  ggplot(aes(fct_reorder(word, n), n)) +
+    geom_col() +
+    coord_flip() + 
+    theme_minimal(base_size = 12) +
+    labs(title = "Frequency of 'Bad Habits' lyrics", y = "", x = "")
+
+```
+
+```{r part2-vis-soad}
+top_20_soad <- soad_lyrics %>%
+  anti_join(get_stopwords(source = "smart")) %>%
+  count(word) %>%
+  arrange(desc(n)) %>%
+  slice(1:20)
+
+top_20_soad %>% 
+  ggplot(aes(fct_reorder(word, n), n)) +
+    geom_col() +
+    coord_flip() + 
+    theme_minimal(base_size = 12) +
+    labs(title = "Frequency of 'Death Race for Love' lyrics", y = "", x = "")
 ```
 
 ## Part 3
@@ -71,10 +160,39 @@ each album. What comparisons can be made?
 
 ```{r part-3-get-lexicon, eval = FALSE}
 get_sentiments("bing") 
+
+
 ```
 
 ```{r part-3-sentiment-viz}
+lovell_lyrics %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(sentiment, word) %>%
+  arrange(desc(n)) %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>% 
+  ggplot(aes(fct_reorder(word, n), n, fill = sentiment)) +
+    geom_col() +
+    coord_flip() +
+    facet_wrap(~ sentiment, scales = "free_y") +
+    theme_minimal(base_size = 16) +
+    labs(title = "Sentiments in NAV Lyrics", x = "")
 
+soad_lyrics %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(sentiment, word) %>%
+  arrange(desc(n)) %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  ggplot(aes(fct_reorder(word, n), n, fill = sentiment)) +
+    geom_col() +
+    coord_flip() +
+    facet_wrap(~ sentiment, scales = "free_y") +
+    theme_minimal(base_size = 16) +
+    labs(title = "Sentiments in Juice WRLD Lyrics", x = "")
+  
 ```
 
 ## Part 4
@@ -82,8 +200,44 @@ get_sentiments("bing")
 Create a wordcloud for each album.
 
 ```{r task-4-wordcloud}
+library(wordcloud)
+set.seed(12345)
+lovell_lyrics %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
 
+soad_lyrics %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
 ```
+
+
+
+```{r visualize-more}
+# combine the lyrics, calculate frequencies
+combined <- bind_rows(lovell_lyrics, soad_lyrics) %>%
+  anti_join(get_stopwords(source = "smart")) %>% 
+  group_by(artist) %>% 
+  count(word, sort = T) %>% 
+  mutate(freq = n / sum(n)) %>% 
+  select(artist, word, freq) %>% 
+  spread(artist, freq)
+# make into nice plot
+
+combined
+
+ggplot(combined, aes(x = `NAV`, y = `Juice WRLD`)) +
+  # hide discreteness
+  geom_jitter(alpha = 0.1, size = 2.5, width = 0.25, height = 0.25) +
+  geom_text(aes(label = word), check_overlap = T, vjust = 1.5) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_abline(color = "blue") +
+  theme_minimal(base_size = 16)
+```
+
 
 # Submission
 
