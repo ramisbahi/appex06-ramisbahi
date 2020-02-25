@@ -1,0 +1,100 @@
+---
+title: "Visualizing song lyrics"
+author: ""
+date: ""
+output: 
+  html_document:
+    toc: true
+    number_sections: false
+    toc_float: true
+    df_print: paged
+---
+
+```{r set-up, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      comment = "#>", highlight = TRUE,
+                      fig.align = "center")
+```
+
+# Getting started
+
+1. Clone your repo `appex06-[github_name]` to create a new project
+   in RStudio Cloud under the STA 199 class space.
+
+2. Configure git
+      ```{r config-git-ex, eval=FALSE}
+      library(usethis)
+      use_git_config(user.name="your name", user.email="your email")
+      ```
+
+# Packages and Data
+
+We'll make use of the following packages.
+
+```{r load-packages}
+library(tidyverse)
+library(tidytext)
+library(genius) # https://github.com/JosiahParry/genius
+library(wordcloud)
+library(reshape2)
+```
+
+## Part 1
+
+Choose two albums of your choice, and read in their song lyric data from Genius.
+Add a variable for the artist and album, and don't forget to save these data 
+frames for later use. 
+
+```{r part-1-reading-data}
+
+```
+
+
+## Part 2
+
+Tidy up the lyrics by removing commonly used words. Display a table of the most
+commonly used words (after cleaning up the stop words). Are these words what
+you expect from the albums? Create a visualization of these words for each 
+album.
+
+```{r part-2-cleanup-dataviz}
+
+```
+
+## Part 3
+
+Use the `bing` lexicon to get the sentiments for the lyrics for each of your
+selected albums. You may need to interactively download this lexicon (I will
+demonstrate on the screen; dont forget to change `eval` to be `TRUE` in the
+chunk below). Create a visualization comparing positive vs. negative words for 
+each album. What comparisons can be made?
+
+```{r part-3-get-lexicon, eval = FALSE}
+get_sentiments("bing") 
+```
+
+```{r part-3-sentiment-viz}
+
+```
+
+## Part 4
+
+Create a wordcloud for each album.
+
+```{r task-4-wordcloud}
+
+```
+
+# Submission
+
+## Stage, commit and push
+
+1. Stage your modified files.
+2. Commit your changes with an informative message.
+3. Push your changes to your GitHub repo.
+4. Verify your files were updated on GitHub.
+
+# References
+
+1. Perry, J. Package `genius` for scraping song lyrics using the Genius.com API.
+https://github.com/JosiahParry/genius
